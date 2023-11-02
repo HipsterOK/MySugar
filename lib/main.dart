@@ -44,7 +44,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<DiabetesEntry> entries = [];
   DateTime selectedDate = DateTime.now();
-  String selectedTime = '';
+  String selectedTime = "${TimeOfDay.now().hour}:${TimeOfDay.now().minute}";
 
   void addEntry(DiabetesEntry entry) {
     setState(() {
@@ -54,7 +54,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<DiabetesEntry> getEntriesForSelectedDate() {
-    final formattedDate = "${selectedDate.year}-${selectedDate.month}-${selectedDate.day}";
+    final formattedDate =
+        "${selectedDate.day}.${selectedDate.month}.${selectedDate.year}";
     return entries.where((entry) => entry.date == formattedDate).toList();
   }
 
@@ -64,17 +65,6 @@ class _MyHomePageState extends State<MyHomePage> {
       onConfirm: (date) {
         setState(() {
           selectedDate = date;
-        });
-      },
-    );
-  }
-
-  void selectTime() {
-    DatePicker.showTimePicker(
-      context,
-      onConfirm: (time) {
-        setState(() {
-          selectedTime = time.toString().substring(11, 16);
         });
       },
     );
@@ -94,22 +84,18 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: <Widget>[
-          ListTile(
-            title: Text('Дата: ${selectedDate.year}-${selectedDate.month}-${selectedDate.day}'),
-            subtitle: Text('Время: $selectedTime'),
-            trailing: IconButton(
-              icon: Icon(Icons.access_time),
-              onPressed: selectTime,
-            ),
-          ),
+          Text(
+              'Дата: ${selectedDate.day}.${selectedDate.month}.${selectedDate.year}'),
           Expanded(
             child: ListView.builder(
               itemCount: getEntriesForSelectedDate().length,
               itemBuilder: (context, index) {
                 final entry = getEntriesForSelectedDate()[index];
+                final timeString = entry.time;
                 return ListTile(
-                  title: Text('Дата: ${entry.date} Время: ${entry.time}'),
-                  subtitle: Text('Уровень глюкозы: ${entry.glucoseLevel} мг/дл'),
+                  title: Text('Дата: ${entry.date} $timeString'),
+                  subtitle:
+                      Text('Уровень глюкозы: ${entry.glucoseLevel} мг/дл'),
                 );
               },
             ),
@@ -130,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         },
         tooltip: 'Добавить запись',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -153,14 +139,14 @@ class DiabetesEntryPage extends StatefulWidget {
 
 class _DiabetesEntryPageState extends State<DiabetesEntryPage> {
   DateTime selectedDate = DateTime.now();
-  String selectedTime = '';
+  String selectedTime = "${TimeOfDay.now().hour}:${TimeOfDay.now().minute}";
   final TextEditingController glucoseLevelController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     selectedDate = widget.defaultDate;
-    selectedTime = widget.defaultTime;
+    selectedTime = "${TimeOfDay.now().hour}:${TimeOfDay.now().minute}";
   }
 
   @override
@@ -175,8 +161,15 @@ class _DiabetesEntryPageState extends State<DiabetesEntryPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ListTile(
-              title: Text('Дата: ${selectedDate.year}-${selectedDate.month}-${selectedDate.day}'),
-              subtitle: Text('Время: $selectedTime'),
+              title: Text(
+                  'Дата: ${selectedDate.day}.${selectedDate.month}.${selectedDate.year}'),
+              trailing: IconButton(
+                icon: Icon(Icons.date_range),
+                onPressed: selectDate,
+              ),
+            ),
+            ListTile(
+              title: Text('Время: $selectedTime'),
               trailing: IconButton(
                 icon: Icon(Icons.access_time),
                 onPressed: selectTime,
@@ -191,7 +184,8 @@ class _DiabetesEntryPageState extends State<DiabetesEntryPage> {
                 final glucoseLevel = double.parse(glucoseLevelController.text);
 
                 final entry = DiabetesEntry(
-                  date: "${selectedDate.year}-${selectedDate.month}-${selectedDate.day}",
+                  date:
+                      "${selectedDate.day}.${selectedDate.month}.${selectedDate.year}",
                   time: selectedTime,
                   glucoseLevel: glucoseLevel,
                 );
@@ -207,12 +201,25 @@ class _DiabetesEntryPageState extends State<DiabetesEntryPage> {
     );
   }
 
+  void selectDate() {
+    DatePicker.showDatePicker(
+      context,
+      onConfirm: (date) {
+        setState(() {
+          selectedDate = date;
+        });
+      },
+    );
+  }
+
   void selectTime() {
     DatePicker.showTimePicker(
       context,
+      showSecondsColumn: false, // Убираем отображение секунд
+      showTitleActions: true,
       onConfirm: (time) {
         setState(() {
-          selectedTime = time.toString().substring(11, 16);
+          selectedTime = "${time.hour}:${time.minute}";
         });
       },
     );
